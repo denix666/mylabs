@@ -1,10 +1,19 @@
-/* To compile: gcc -o geo_lookup geo_lookup.c `pkg-config --libs --cflags gtk+-3.0` */
+/* 
+	Автор: Denis Salmanovich
+	
+	Данная программа написана для изучения основ программирования на языке C
+	
+	Для корректной работы программы должны быть установлены следующие пакеты:
+	GeoIP, gtk3-devel, xclip
+	
+	Компиляция: gcc -o geo_lookup geo_lookup.c `pkg-config --libs --cflags gtk+-3.0`
+*/
 
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void get_geo_location(GtkWidget *widget, gpointer data){
+void get_geo_location(GtkWidget *widget, gpointer data) {
 	char cmd[100];
 	
 	// Восстановление переданных данных о виджетах
@@ -31,7 +40,7 @@ void get_geo_location(GtkWidget *widget, gpointer data){
 	gtk_label_set_text(GTK_LABEL(main_label2), buf);
 }
 
-void clear_entry(GtkWidget *widget, gpointer data){
+void clear_entry(GtkWidget *widget, gpointer data) {
 	// Восстановление переданных данных о виджетах
 	gpointer *dataForButton = (gpointer*)data;
 	
@@ -42,18 +51,38 @@ void clear_entry(GtkWidget *widget, gpointer data){
 	gtk_entry_set_text(GTK_ENTRY(main_entry1), "");
 }
 
-void get_from_clipboard(GtkWidget *widget, gpointer main_entry1){
+void get_from_clipboard(GtkWidget *widget, gpointer main_entry1) {
+	// Очищаем окошко (чтоб данные из него не попали в буфер обмена)
+	gtk_entry_set_text(GTK_ENTRY(main_entry1), "");
 	
+	// Вызываем команду передачи содержимого буфера обмена в файл
+	system("xclip -o >/tmp/clip");
 	
-	//GtkClipboard *clipboard;
-	//clipboard = gtk_clipboard_get(GDK_NONE);
+	// Считываем полученный результат команды из файла
+	char buf[256];
+	FILE *myFile = fopen("/tmp/clip","r");
+	fgets(buf, 60, myFile);
+	fclose(myFile);
 	
-	//char clipboard = clipboard.wait_for_text ();
+	// Подтираем за собой
+	system("rm -rf /tmp/clip");
 	
-	//printf("%s",clipboard);
+	// Выводим результат в окошко ввода
+	gtk_entry_set_text(GTK_ENTRY(main_entry1), buf);
+}
 
-	//const gchar* cl = gtk_clipboard_get(GDK_SELECTION_PRIMARY);
-	//gtk_entry_set_text(GTK_ENTRY(main_entry1), clipboard);
+static gboolean check_key(GtkWidget *widget, GdkEventKey *event) {
+	// Если нажат 'Esc' - закрыть приложение
+	if (event->keyval == GDK_KEY_Escape) {
+		gtk_main_quit();
+		return TRUE;
+	}
+	
+	// Если нажать 'ENTER' должна вызываться функция get_geo_location, но как ее правильно вызвать, пока что ниасилил.
+	if (event->keyval == GDK_KEY_Return) {
+		return TRUE;
+	}
+	return FALSE;
 }
 
 int main( int argc, char *argv[]) {
@@ -67,7 +96,6 @@ int main( int argc, char *argv[]) {
 	GtkWidget *main_button3;	// Clear
 	GtkWidget *main_button4;	// Get IP from clipboard
 	GtkWidget *main_frame1;		// Фрэйм для вывода локации
-
 
 	gtk_init(&argc, &argv);
 	
@@ -83,21 +111,22 @@ int main( int argc, char *argv[]) {
 	gtk_container_add(GTK_CONTAINER(main_window), main_fixed);
 	
 	// Метка
-	main_label1 = gtk_label_new("IP address:");
+	main_label1 = gtk_label_new("Ресурс:");
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_label1, 5, 10); 
 	
 	// Ввод IP адреса
 	main_entry1 = gtk_entry_new();
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_entry1, 100, 7);
-	gtk_entry_set_text(GTK_ENTRY(main_entry1), "8.8.8.8");
+	gtk_entry_set_text(GTK_ENTRY(main_entry1), "");
+	gtk_widget_set_tooltip_text(main_entry1, "Введите IP адрес или hostname");
 	
 	// Кнопка вывода локации
-	main_button1 = gtk_button_new_with_label("GEO Lookup");
+	main_button1 = gtk_button_new_with_label("Найти!");
 	gtk_widget_set_size_request(main_button1, 90, 15);
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_button1, 270, 6);
 
 	// Фрэйм для вывода локации
-	main_frame1 = gtk_frame_new("Location");
+	main_frame1 = gtk_frame_new("Местонахождение:");
 	gtk_frame_set_shadow_type(GTK_FRAME(main_frame1), GTK_SHADOW_ETCHED_IN);
 	gtk_widget_set_size_request(main_frame1, 360, 50);
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_frame1, 2, 40);
@@ -109,32 +138,34 @@ int main( int argc, char *argv[]) {
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_label2, 10, 70);
 	
 	// Кнопка выхода
-	main_button2 = gtk_button_new_with_label("Exit");
+	main_button2 = gtk_button_new_with_label("Выход");
 	gtk_widget_set_size_request(main_button2, 90, 15);
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_button2, 270, 110);
 	
 	// Кнопка Clear
-	main_button3 = gtk_button_new_with_label("Clear");
+	main_button3 = gtk_button_new_with_label("Очистить");
 	gtk_widget_set_size_request(main_button3, 90, 15);
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_button3, 170, 110);
 	
 	// Кнопка Get IP from clipboard
-	main_button4 = gtk_button_new_with_label("Get IP from clipboard");
+	main_button4 = gtk_button_new_with_label("Вставить из буфера");
 	gtk_widget_set_size_request(main_button4, 150, 15);
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_button4, 6, 110);
 	
 	// Общие сигналы
-	g_signal_connect_swapped(G_OBJECT(main_window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
-	g_signal_connect(main_button2, "clicked", G_CALLBACK(gtk_main_quit), G_OBJECT(main_window));
-	
+	g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL); // Нажат крестик выхода из апликации
+	g_signal_connect(main_button2, "clicked", G_CALLBACK(gtk_main_quit), G_OBJECT(main_window)); // Нажата кнопка "Выход"
+	g_signal_connect(main_button4, "clicked", G_CALLBACK(get_from_clipboard),(gpointer)main_entry1); // Нажата кнопка "Get IP from clipboard"
+		
 	// Сигнал и передача более одного аргумента
 	gpointer dataForButton[2];
 	dataForButton[0] = (gpointer)main_entry1;
 	dataForButton[1] = (gpointer)main_label2;
-	g_signal_connect(main_button1, "clicked", G_CALLBACK(get_geo_location), (gpointer)dataForButton);
-	g_signal_connect(main_button3, "clicked", G_CALLBACK(clear_entry),(gpointer)dataForButton);
+	g_signal_connect(main_button1, "clicked", G_CALLBACK(get_geo_location), (gpointer)dataForButton); // Нажата кнопка GEO Lookup
+	g_signal_connect(main_button3, "clicked", G_CALLBACK(clear_entry),(gpointer)dataForButton); // Нажата кнопка Clear
 	
-	g_signal_connect(main_button4, "clicked", G_CALLBACK(get_from_clipboard),main_entry1);
+	// Обработка сигналов нажатия клавиш
+	g_signal_connect(main_window, "key_press_event", G_CALLBACK(check_key), (gpointer)dataForButton);
 	
 	gtk_widget_show_all(main_window);
 	gtk_main();
