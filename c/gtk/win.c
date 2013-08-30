@@ -9,8 +9,8 @@ void show_about(GtkWidget *widget, gpointer data){
 	
 	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(dialog), "Моя программка");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dialog), "0.1"); 
-	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(dialog), "(c) Denis Salmanovich");
-	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog), "Моя первая программка на GTK+.");
+	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(dialog), "(c) Den");
+	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog), "Моя программка на GTK+.");
 	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(dialog), "http://os.vc");
 
 	gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(dialog), pixbuf);
