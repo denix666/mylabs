@@ -37,6 +37,7 @@ int main( int argc, char *argv[]) {
 	gtk_combo_box_append_text(GTK_COMBO_BOX(main_combo), "Mint");
 	gtk_combo_box_append_text(GTK_COMBO_BOX(main_combo), "Gentoo");
 	gtk_combo_box_append_text(GTK_COMBO_BOX(main_combo), "Debian");
+	gtk_combo_box_set_active(GTK_COMBO_BOX (main_combo), 0);
 	gtk_fixed_put(GTK_FIXED(main_fixed), main_combo, 50, 10);
 	
 	// Метка где будет отображаться выбор
